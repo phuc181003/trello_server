@@ -1,0 +1,14 @@
+{
+  "name": "trello_server",
+  "version": "1.0.0",
+  "description": "mern stack",
+  "main": "src/server.js",
+  "author": "phuctm",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "express": "^4.19.2",
+    "nodemon": "^3.1.4",
+    "trello_server": "file:"
+  }
+}
