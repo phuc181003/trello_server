@@ -1,13 +1,9 @@
-/**
- * Updated by trungquandev.com's author on August 17 2023
- * YouTube: https://youtube.com/@trungquandev
- * "A bit of fragrance clings to the hand that gives flowers!"
- */
-const { MongoClient, ServerApiVersion } = require('mongodb')
+import { ENV } from './environment'
 
-const URI = 'mongodb+srv://phuc07860:ughlnS9fr1j8qeYV@cluster0-trello.7uepk.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0-trello'
+let databaseIntance = null
+const { MongoClient, ServerApiVersion } = require('mongodb')
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
-export const client = new MongoClient(URI, {
+const client = new MongoClient(ENV.MONGODB_URI, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -15,4 +11,20 @@ export const client = new MongoClient(URI, {
   }
 }
 )
+// connect MongoDB
+export const CONNECT_DB = async () => {
+
+  // Connect DB to the server (optional starting in v4.7)
+  await client.connect()
+  databaseIntance = client.db(ENV.DATABASE_NAME)
+}
+// đóng kết nối tới database khi cần
+export const CLOSE_DB = async () => {
+  await client.close()
+}
+export const GET_DB = () => {
+  if (!databaseIntance) throw new Error('Must connect to Database fist')
+  return databaseIntance
+}
+
 
