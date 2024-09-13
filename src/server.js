@@ -3,35 +3,40 @@
  * YouTube: https://youtube.com/@trungquandev
  * "A bit of fragrance clings to the hand that gives flowers!"
  */
-
 import express from 'express'
+import exitHook from 'async-exit-hook'
 import Router from '~/routes/v1'
-import { mapOrder } from '~/utils/sorts.js'
-import { client } from '~/config/mongodb'
+import { CLOSE_DB, CONNECT_DB } from '~/config/mongodb'
+import { ENV } from './config/environment'
+import { errorHandlingMiddleware } from './middlewares/handlingMiddleware'
+const START_SERVER = () => {
+  const app = express()
 
-const app = express()
+  app.use(express.json())
+  app.use('/api/v1', Router)
 
-const hostname = 'localhost'
-const port = 8017
-app.use('/api/v1', Router)
+  app.use(errorHandlingMiddleware)
+  app.get('*', async (req, res) => {
+    res.end('<h1> path does not exist!</h1><hr>')
+  })
+  app.listen(ENV.APP_PORT, ENV.APP_HOST, () => {
+    // eslint-disable-next-line no-console
+    console.log(`3:server running at http://${ENV.APP_HOST}:${ENV.APP_PORT}/`)
+  })
+  // thực hiện đóng các tác vụ cleanup trước khi dừng server
+  exitHook(() => {
+    console.log('4. server is shuting down...')
+    CLOSE_DB()
+    console.log('5. disconnect from MongoDB Cloud Atlas')
 
-
-// connect MongoDB
-async function run() {
-  try {
-    // Connect the client to the server (optional starting in v4.7)
-    await client.connect()
-    // Send a ping to confirm a successful connection
-    await client.db('admin').command({ ping: 1 })
-    console.log('Pinged your deployment. You successfully connected to MongoDB!')
-  } finally {
-    // Ensures that the client will close when you finish/error
-    await client.close()
-  }
+  })
 }
-run().catch(console.dir)
 
-app.listen(port, hostname, () => {
-  // eslint-disable-next-line no-console
-  console.log(`server running at http://${hostname}:${port}/`)
-})
+console.log('1:Connecting to MongoDB cloud Atlast!')
+CONNECT_DB()
+  .then(() => console.log('2:Connected to MongoDB cloud Atlast'))
+  .then(() => START_SERVER())
+  .catch(Error => {
+    console.error(Error)
+    process.exit(0)
+  })
